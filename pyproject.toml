@@ -1,0 +1,56 @@
+[project]
+name = "acute_resp_agent_job"
+version = "0.0.1"
+authors = [{ name = "mt3franca@gmail.com" }]
+requires-python = ">= 3.11"
+dependencies = [
+    "pandas",
+    "databricks-feature-engineering",
+    "dotenv>=0.9.9",
+    "databricks-langchain>=0.7.0",
+    "langchain-core>=0.3.74",
+    "langgraph>=0.6.6",
+    "toml>=0.10.2",
+    "langchain-tavily>=0.2.11",
+    "tavily-python>=0.7.11",
+    "databricks-sql-connector>=4.1.2",
+    "sqlalchemy>=2.0.43",
+    "databricks-sqlalchemy>=2.0.7",
+    "pdfplumber>=0.11.7",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+
+    # Code completion support for DLT, also install databricks-connect
+    "databricks-dlt",
+
+    # databricks-connect can be used to run parts of this project locally.
+    # See https://docs.databricks.com/dev-tools/databricks-connect.html.
+    #
+    # Note, databricks-connect is automatically installed if you're using Databricks
+    # extension for Visual Studio Code
+    # (https://docs.databricks.com/dev-tools/vscode-ext/dev-tasks/databricks-connect.html).
+    #
+    # To manually install databricks-connect, uncomment the line below to install a version
+    # of db-connect that corresponds to the Databricks Runtime version used for this project.
+    # See https://docs.databricks.com/dev-tools/databricks-connect.html
+    # "databricks-connect>=15.4,<15.5",
+]
+
+[tool.pytest.ini_options]
+pythonpath = "src"
+testpaths = [
+    "tests",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/acute_resp_agent_job"]
+
+[project.scripts]
+main = "acute_resp_agent_job.main:main"

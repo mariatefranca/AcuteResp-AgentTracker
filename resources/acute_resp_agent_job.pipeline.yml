@@ -1,0 +1,14 @@
+# The main pipeline for acute_resp_agent_job
+resources:
+  pipelines:
+    acute_resp_agent_job_pipeline:
+      name: acute_resp_agent_job_pipeline
+      catalog: workspace
+      schema: acute_resp_agent_job_${bundle.target}
+      serverless: true
+      libraries:
+        - notebook:
+            path: ../src/dlt_pipeline.ipynb
+
+      configuration:
+        bundle.sourcePath: ${workspace.file_path}/src
