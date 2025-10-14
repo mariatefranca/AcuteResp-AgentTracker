@@ -17,6 +17,8 @@ dependencies = [
     { name = "databricks-sql-connector" },
     { name = "databricks-sqlalchemy" },
     { name = "dotenv" },
+    { name = "html-to-markdown" },
+    { name = "jinja2" },
     { name = "langchain-core" },
     { name = "langchain-tavily" },
     { name = "langgraph" },
@@ -41,6 +43,8 @@ requires-dist = [
     { name = "databricks-sql-connector", specifier = ">=4.1.2" },
     { name = "databricks-sqlalchemy", specifier = ">=2.0.7" },
     { name = "dotenv", specifier = ">=0.9.9" },
+    { name = "html-to-markdown", specifier = ">=2.3.0" },
+    { name = "jinja2" },
     { name = "langchain-core", specifier = ">=0.3.74" },
     { name = "langchain-tavily", specifier = ">=0.2.11" },
     { name = "langgraph", specifier = ">=0.6.6" },
@@ -1298,6 +1302,17 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/01/ee/02a2c011bdab74c6fb3c75474d40b3052059d95df7e73351460c8588d963/h11-0.16.0.tar.gz", hash = "sha256:4e35b956cf45792e4caa5885e69fba00bdbc6ffafbfa020300e549b208ee5ff1", size = 101250, upload-time = "2025-04-24T03:35:25.427Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/04/4b/29cac41a4d98d144bf5f6d33995617b185d14b22401f75ca86f384e87ff1/h11-0.16.0-py3-none-any.whl", hash = "sha256:63cf8bbe7522de3bf65932fda1d9c2772064ffb3dae62d55932da54b31cb6c86", size = 37515, upload-time = "2025-04-24T03:35:24.344Z" },
+]
+
+[[package]]
+name = "html-to-markdown"
+version = "2.3.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/57/38/8b5a86de6cb4a4024360fb68f9c0c104ba083bb57e06bffa104888788d06/html_to_markdown-2.3.0.tar.gz", hash = "sha256:c4ab103d509196d69efb0acd742819d2ff907da503e9ae5368eb994080c55de0", size = 1903433, upload-time = "2025-10-13T08:55:18.917Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/7c/24/1cdb5c59140ec8386b8cf560260db36ac0240da5c45baa355e70b19227c8/html_to_markdown-2.3.0-cp310-abi3-macosx_11_0_arm64.whl", hash = "sha256:bb6988b6160bb3702da7fe20f9385ccb27617c3626a128a0cc941b0e844a5630", size = 4802377, upload-time = "2025-10-13T08:55:12.648Z" },
+    { url = "https://files.pythonhosted.org/packages/1c/14/97fe209ec256e785e5f5e2c7b84a4c8e896576b6656a6fa73710d703f855/html_to_markdown-2.3.0-cp310-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:c050f194825f9125809c51f6df5ded4280f4e956e6b270f5a22220e6f10b8df6", size = 5327187, upload-time = "2025-10-13T08:55:15.511Z" },
+    { url = "https://files.pythonhosted.org/packages/f4/99/5a4018c4c195bfa9c0ba0ed7c6dbd4fcc3e47738b790331aa85f48799ab4/html_to_markdown-2.3.0-cp310-abi3-win_amd64.whl", hash = "sha256:fd180888cf19d6b75ca41f77efe9a74c0b5a31447175de57632dfa722c25cf56", size = 5076038, upload-time = "2025-10-13T08:55:17.098Z" },
 ]
 
 [[package]]
