@@ -1,0 +1,105 @@
+<!-- Updated SRAG Report Template with green palette and PDF export -->
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Relatório SRAG — Indicium HealthCare Inc.</title>
+  <style>
+    :root{
+      --brand:#2e7d32; /* Green primary */
+      --muted:#556b57;
+      --bg:#f1f4f1;
+      --card:#ffffff;
+      --light-accent:#e8f5e9;
+    }
+    body{font-family:Inter,Arial;background:var(--bg);color:#1b1f1b;margin:0;-webkit-print-color-adjust:exact;}
+    .container{max-width:1100px;margin:20px auto;padding:20px}
+    header{background:var(--light-accent);padding:20px;border-radius:10px;display:flex;align-items:center;gap:16px}
+    .brand h1{margin:0;font-size:20px;color:var(--brand)}
+    .brand p{margin:0;color:var(--muted);font-size:13px}
+    .section-title{color:var(--brand);margin-bottom:8px}
+    .card{background:var(--card);border-radius:12px;padding:16px;box-shadow:0 4px 10px rgba(0,0,0,0.05);margin-top:16px}
+    .metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-top:12px}
+    .metric{padding:14px;border-radius:10px;background:var(--light-accent);text-align:center}
+    .metric .label{font-size:12px;color:var(--muted)}
+    .metric .value{font-size:20px;font-weight:700;margin-top:6px}
+    .btn{background:var(--brand);color:white;padding:8px 12px;border-radius:8px;border:none;cursor:pointer}
+    @media print{.btn{display:none}}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="brand">
+        <h1>Indicium HealthCare Inc.</h1>
+        <p>Relatório SRAG — Situação Atual</p>
+      </div>
+      <div style="margin-left:auto;text-align:right;font-size:13px;color:var(--muted)">
+        Emitido: {{report_date}}<br>Última Atualização: {{last_srag_notification_available}}
+      </div>
+    </header>
+
+    <!-- Visão Geral -->
+    <section class="card">
+      <h2 class="section-title">Visão Geral</h2>
+      <p>{{srag_description}}</p>
+    </section>
+
+    <!-- Principais Métricas -->
+    <section class="card">
+      <h2 class="section-title">Principais Métricas</h2>
+      <div class="metrics">
+        <div class="metric"><div class="label">Período</div><div class="value">{{last_month_year}}</div></div>
+        <div class="metric"><div class="label">Casos Totais</div><div class="value">{{total_cases_month}}</div></div>
+        <div class="metric"><div class="label">Caos Novos (últimos 7 dias)</div><div class="value">{{cases_last_seven_days}}</div></div>
+      </div>
+      <div class="metrics">
+        <div class="metric"><div class="label">Taxa Variação Número de Casos</div><div class="value">{{last_month_cases_variation_rate}}</div></div>
+        <div class="metric"><div class="label">Total Casos Internação UTI</div><div class="value">{{icu_admission_count}}</div></div>
+        <div class="metric"><div class="label">Taxa Internação UTI</div><div class="value">{{icu_admission_rate}}</div></div>
+      </div>
+    </section>
+
+    <!-- Gráficos de Evolução -->
+    <section class="card">
+      <h2 class="section-title">Evolução de Casos</h2>
+      
+      <div class="cards">
+        <div class="card" id="chart_cases" style="min-height:220px">
+          <h3 style="margin-top:0">Evolução Diária de Casos Último Mês</h3>
+          <div id="chart_cases_svg">{{plot_cases_per_day_last_month}}</div>
+      </div>
+
+      <div class="card" id="chart_hosp" style="min-height:220px">
+          <h3 style="margin-top:0">Evolução de Casos Mensais Último Ano</h3>
+          <div id="chart_hosp_svg">{{plot_cases_per_month_last_year}}</div>
+        </div>
+      </div>
+
+      <p>{{comment_cases_evolution_count}}</p>
+      
+      <div class="cards">
+        <div class="card" id="chart_cases" style="min-height:220px">
+          <h3 style="margin-top:0">Número de Casos por Estado (Último Mês)</h3>
+          <div id="chart_cases_svg">{{plot_cases_by_uf}}</div>
+      </div>
+
+    </section>
+
+    <!-- Tabela Ocupação UTI -->
+    <section class="card">
+      <h2 class="section-title">Ocupação UTI por Estado</h2>
+      {{icu_ocuppancy_per_state_table}}
+    </section>
+
+    <!-- Contextualização -->
+    <section class="card">
+      <h2 class="section-title">Contextualização</h2>
+      <p>{{conclusions_disease_evolution_icu_occupation}}</p>
+    </section>
+
+    <button class="btn" onclick="window.print()">Exportar PDF</button>
+  </div>
+</body>
+</html>
