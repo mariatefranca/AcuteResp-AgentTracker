@@ -24,6 +24,7 @@ dependencies = [
     { name = "langgraph" },
     { name = "pandas" },
     { name = "pdfplumber" },
+    { name = "render-html" },
     { name = "sqlalchemy" },
     { name = "tavily-python" },
     { name = "toml" },
@@ -43,6 +44,7 @@ requires-dist = [
     { name = "langgraph", specifier = ">=0.6.6" },
     { name = "pandas", specifier = ">=2.2.3" },
     { name = "pdfplumber", specifier = ">=0.11.7" },
+    { name = "render-html" },
     { name = "sqlalchemy", specifier = ">=2.0.43" },
     { name = "tavily-python", specifier = ">=0.7.11" },
     { name = "toml", specifier = ">=0.10.2" },
@@ -2963,6 +2965,15 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/be/6c/d51204e28e7bc54f9a03bb799b04730d7e54ff2718862b8d4e09e7110a6a/regex-2025.7.34-cp314-cp314-win32.whl", hash = "sha256:f978ddfb6216028c8f1d6b0f7ef779949498b64117fc35a939022f67f810bdcb", size = 269730, upload-time = "2025-07-31T00:20:42.253Z" },
     { url = "https://files.pythonhosted.org/packages/74/52/a7e92d02fa1fdef59d113098cb9f02c5d03289a0e9f9e5d4d6acccd10677/regex-2025.7.34-cp314-cp314-win_amd64.whl", hash = "sha256:4b7dc33b9b48fb37ead12ffc7bdb846ac72f99a80373c4da48f64b373a7abeae", size = 278640, upload-time = "2025-07-31T00:20:44.42Z" },
     { url = "https://files.pythonhosted.org/packages/d1/78/a815529b559b1771080faa90c3ab401730661f99d495ab0071649f139ebd/regex-2025.7.34-cp314-cp314-win_arm64.whl", hash = "sha256:4b8c4d39f451e64809912c82392933d80fe2e4a87eeef8859fcc5380d0173c64", size = 271757, upload-time = "2025-07-31T00:20:46.355Z" },
+]
+
+[[package]]
+name = "render-html"
+version = "1.0.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/69/98/d8b35afedeacf6ee66d9a7eda1e378031188668153b144041b8ae32d4871/render_html-1.0.1.tar.gz", hash = "sha256:ae7119b53566f84dc172480a1d8a3cc1fd8d5d3661f2a8537efb24114e97f17f", size = 4335, upload-time = "2023-06-23T11:52:32.593Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/09/6d/920493775bbdb30caf31b490e036566382c7b293b63878e5b02bc13c2d92/render_html-1.0.1-py3-none-any.whl", hash = "sha256:c7fc7275931964414a94edc158955c61643fe981eca7e2c65f9311331be77986", size = 4553, upload-time = "2023-06-23T11:52:31.265Z" },
 ]
 
 [[package]]

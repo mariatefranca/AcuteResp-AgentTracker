@@ -36,9 +36,6 @@ env_vars = toml.load("../../conf/env_vars.toml")
 for key, value in env_vars.items():
     os.environ[key] = str(value)
 
-srag_df = spark.read.table(F'{env_vars["CATALOG"]}.{env_vars["FS_SCHEMA"]}.srag_features')
-hospital_df = spark.read.table(F'{env_vars["CATALOG"]}.{env_vars["FS_SCHEMA"]}.hospital_features')
-
 # COMMAND ----------
 
 class SRAGMetrics:

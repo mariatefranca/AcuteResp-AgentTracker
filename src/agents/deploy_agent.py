@@ -5,12 +5,9 @@ dbutils.library.restartPython()
 
 # COMMAND ----------
 
-# MAGIC %run ./agent.py
-
-# COMMAND ----------
-
 import os
 import mlflow
+import sys
 import toml
 import pyspark.sql.functions as F
 from databricks_langchain import ChatDatabricks
@@ -37,42 +34,25 @@ from langchain_core.messages import (
 )
 from pydantic import BaseModel, create_model
 from typing import Annotated, TypedDict
-
-# COMMAND ----------
-
 from mlflow.models.resources import DatabricksFunction, DatabricksServingEndpoint
 
 # COMMAND ----------
 
-import sys
-
-sys.path.append("../src")
-
-# COMMAND ----------
-
-from ..agents.structured-data-for-rag
-
-# COMMAND ----------
-
-BASE_DIR = os.getcwd()
-
-code_path = [os.path.join(BASE_DIR, "agents")]
-
-mlflow.pyfunc.log_model(
-    artifact_path="agent",
-    python_model=AGENT,
-    code_path=code_path,
-    pip_requirements=dependencies,
-    input_example=input_example,
-    resources=resources,
-    registered_model_name="srag_model"
-)
-
-# COMMAND ----------
+sys.path.append("../../src")
 
 from agents.agent import AGENT
 
 # COMMAND ----------
+
+env_vars = toml.load("../../conf/env_vars.toml")
+
+# Set as environment variables.
+for key, value in env_vars.items():
+    os.environ[key] = str(value)
+
+# COMMAND ----------
+
+LLM_ENDPOINT_NAME = env_vars["LLM_ENDPOINT_NAME"]
 
 resources = [
     DatabricksServingEndpoint(
@@ -87,7 +67,7 @@ dependencies = toml.load("../../pyproject.toml")["project"]["dependencies"]
 with mlflow.start_run():
     model_info = mlflow.pyfunc.log_model(
         artifact_path="agent",             # folder name inside MLflow run
-        python_model=agent_model,          # class instance, not string
+        python_model="agent.py",          # class instance, not string
         pip_requirements=dependencies,     # loaded from pyproject.toml
         input_example=input_example,
         resources=resources,
@@ -96,33 +76,21 @@ with mlflow.start_run():
 
 # COMMAND ----------
 
-resources = [
-    DatabricksServingEndpoint(
-        endpoint_name=LLM_ENDPOINT_NAME
-    )
-]
+# resources = [
+#     DatabricksServingEndpoint(
+#         endpoint_name=LLM_ENDPOINT_NAME
+#     )
+# ]
 
-input_example = {"messages": [{"role": "user", "content": "O que é SRAG?"}]}
-dependencies = toml.load("../../pyproject.toml")["project"]["dependencies"]
+# input_example = {"messages": [{"role": "user", "content": "O que é SRAG?"}]}
+# dependencies = toml.load("../../pyproject.toml")["project"]["dependencies"]
 
-with mlflow.start_run():
-    model_info = mlflow.pyfunc.log_model(
-        "agent",
-        python_model="agent.py",
-        pip_requirements=dependencies,
-        input_example = input_example,
-        resources=resources,
-        # registered_model_name="srag_model",
-    )
-
-# COMMAND ----------
-
-# AGENT.predict({"messages": [{"role": "user", "content": "O que é SRAG?"}]})
-
-# COMMAND ----------
-
-# AGENT.predict({"messages": [{"role": "user", "content": "Qual a taxa de mortalidade por SRAG esse mês no Brazil?"}]})
-
-# COMMAND ----------
-
-
+# with mlflow.start_run():
+#     model_info = mlflow.pyfunc.log_model(
+#         "agent",
+#         python_model="agent.py",
+#         pip_requirements=dependencies,
+#         input_example = input_example,
+#         resources=resources,
+#         # registered_model_name="srag_model",
+#     )

@@ -1,3 +1,16 @@
+# Databricks notebook source
+# MAGIC %md
+# MAGIC https://python.langchain.com/v0.2/docs/integrations/tools/spark_sql/
+
+# COMMAND ----------
+
+!pip install uv
+!uv add databricks-sql-connector databricks-sqlalchemy --active --quiet
+!uv sync --active --quiet
+dbutils.library.restartPython()
+
+# COMMAND ----------
+
 import io
 import os
 import sys
@@ -12,8 +25,32 @@ from pydantic import BaseModel
 from pyspark.sql import SparkSession
 from typing import Optional, Type, Any, Dict
 
+
+
+# COMMAND ----------
+
+# Load environment variables.
+env_vars = toml.load("../../conf/env_vars.toml")
+
+# Set as environment variables.
+for key, value in env_vars.items():
+    os.environ[key] = str(value)
+
+# COMMAND ----------
+
 # Load credentials variables from .env file.
 load_dotenv("../../.env")
+
+# COMMAND ----------
+
+system_prompt = """'You are an agent designed to interact with Spark SQL.
+Given an input question, create a syntactically correct Spark SQL query to run, then look at the results of the query and return the answer.You have access to a table srag_features with SRAG disease statistics and to a table srag_features_dictionary, which contais a column named 'coluna' with all the srag_features names and a column 'descricao' with all column's descriptions.
+Unless the user specifies a specific number of examples they wish to obtain, always limit your query to at most 5 results.You can order the results by a relevant column to return the most interesting examples in the database. Never query for all the columns from a specific table, only ask for the relevant columns given the question.
+You have access to tools for interacting with the database. Only use the below tools. Only use the information returned by the below tools to construct your final answer.\nYou MUST double check your query before executing it. If you get an error while executing a query, rewrite the query and try again.
+DO NOT make any DML statements (INSERT, UPDATE, DELETE, DROP etc.) to the database.
+If the question does not seem related to the database, just return 'I don't know' as the answer, if there is no data available for calculating a emtric or answering the question, you can return 'There is no data available in the database to answer the current query.'"""
+
+# COMMAND ----------
 
 class SparkSQLQuerySchema(BaseModel):
     query: str
@@ -74,7 +111,7 @@ class SparkSQLQueryTool(BaseTool):
         If the question does not seem related to the database, just return 'I don't know' as the answer, if there is no data available for calculating a metric or answering a question, you can return 'There is no data available in the database to answer the current query.'"""
         return system_prompt
 
-    def _run(self, query: str, max_results: int = 5) -> Dict[str, Any]:
+    def _run(self, query: str, max_results: int = 100) -> Dict[str, Any]:
         """
         Run the SQL query using the SparkSQL agent executor.
         Returns a dict with:
@@ -98,7 +135,7 @@ class SparkSQLQueryTool(BaseTool):
         verbose_text = buffer.getvalue()
         self.memory.save_context(
             {"query": query},
-            {"verbose_log": verbose_text[:3000]}  # Truncate if large
+            {"verbose_log": verbose_text[:5000]}  # Truncate if large
         )
 
         # Limit result size

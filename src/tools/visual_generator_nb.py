@@ -1,3 +1,10 @@
+# Databricks notebook source
+# !pip install uv
+# !uv sync --active --quiet
+# dbutils.library.restartPython()
+
+# COMMAND ----------
+
 import os
 import pandas as pd
 import json
@@ -6,7 +13,6 @@ import sys
 from typing import Optional
 from pyspark.sql.connect.dataframe import DataFrame
 import pyspark.sql.functions as F
-from pyspark.sql import SparkSession
 import json
 import requests
 import plotly.express as px
@@ -17,9 +23,22 @@ from datetime import timedelta, date
 from pydantic import BaseModel, Field
 from datetime import date
 
-sys.path.append("../../src")
-from tools.metrics_calculator import SRAGMetrics
+from metric_calculator import SRAGMetrics
 
+# COMMAND ----------
+
+# MAGIC %run ../tools/metric_calculator.py
+
+# COMMAND ----------
+
+# Load environment variables.
+env_vars = toml.load("../../conf/env_vars.toml")
+
+# Set as environment variables.
+for key, value in env_vars.items():
+    os.environ[key] = str(value)
+
+# COMMAND ----------
 
 class SRAGVisualization:
     def __init__(
@@ -31,12 +50,12 @@ class SRAGVisualization:
         srag_df: optional main dataset (e.g., monthly cases)
         hospital_df: optional secondary dataset (e.g., hospitalizations)
         """
-        spark = SparkSession.builder.getOrCreate()
         catalog = os.environ["CATALOG"]
         schema = os.environ["FS_SCHEMA"]
-        
         self.srag_df = srag_df if srag_df is not None else spark.read.table(f'{catalog}.{schema}.srag_features')
+
         self.hospital_df = hospital_df if hospital_df is not None else spark.read.table(f'{catalog}.{schema}.hospital_features')
+
         self.metric_calculator = metric_calculator if metric_calculator is not None else SRAGMetrics()
 
     # Visualization functions
@@ -268,7 +287,8 @@ class SRAGVisualization:
             "plot_vaccined_rate": self._plot_vaccination_rate()[0],
         }
         return visual_results
-    
+
+# COMMAND ----------
 
 class SRAGPlotsOutput(BaseModel):
     plot_cases_per_month_last_year: str = Field(..., description="Monthly SRAG case trends over the last 12 months")
