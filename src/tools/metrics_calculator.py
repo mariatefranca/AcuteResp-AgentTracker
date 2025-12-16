@@ -12,7 +12,6 @@ import pyspark.sql.types as T
 from plotly.subplots import make_subplots
 from datetime import timedelta, date
 from pydantic import BaseModel, Field
-from langchain.tools import StructuredTool
 from typing import Optional
 from datetime import date
 import os
@@ -374,7 +373,7 @@ class SRAGMetrics:
             "cases_last_seven_days": self.calculate_cases_per_day().iloc[-7:]["count"].sum(),
             "total_cases_month": self.calculate_cases_per_month()["count"][-1:].iloc[0],
             "icu_ocuppancy_per_state_table": self.calculate_icu_occupancy_per_state().to_html(classes="icu-table", index=False),
-            "last_month_cases_variation_rate": self.calculate_cases_per_month_variation_rate(),
+            "last_month_cases_variation_rate": round(self.calculate_cases_per_month_variation_rate(), 2),
             "last_month_year": self.calculate_icu_admission_rate()["year_month"].iloc[0],
             "icu_admission_count": self.calculate_icu_admission_rate()["admitted_icu"].iloc[0],
             "icu_admission_rate": self.calculate_icu_admission_rate()["icu_admission_rate"].iloc[0],

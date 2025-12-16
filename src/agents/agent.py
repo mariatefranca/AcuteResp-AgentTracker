@@ -27,7 +27,11 @@ from langchain_core.messages import (
 )
 from pydantic import BaseModel, create_model
 from typing import Annotated, TypedDict
-from IPython.display import Image, display
+
+try:
+    from IPython.display import Image, display
+except ImportError:
+    pass
 
 sys.path.append("../../src")
 
@@ -152,12 +156,23 @@ def create_tool_calling_agent(
     # Compile and return the tool-calling agent workflow
     return workflow.compile()
 
-
+    
 class LangGraphAgent(ChatAgent):
     def __init__(
         self,
         agent: CompiledStateGraph):
         self.agent = agent
+    def _normalize_messages(self, model_input):
+        """
+        Review App / Serving always sends a pandas DataFrame.
+        Local tests may send dict.
+        """
+        if isinstance(model_input, pd.DataFrame):
+            messages = model_input.iloc[0]["messages"]
+        else:
+            messages = model_input["messages"]
+
+        return messages
 
     def predict(
         self,

@@ -71,6 +71,11 @@ except:
 
 # COMMAND ----------
 
+# w.secrets.delete_scope(scope=SCOPE)
+# w.secrets.delete_secret(scope=SCOPE)
+
+# COMMAND ----------
+
 w.secrets.list_secrets(scope=SCOPE)
 
 # COMMAND ----------
@@ -85,16 +90,12 @@ w.secrets.list_secrets(scope=SCOPE)
 
 # COMMAND ----------
 
-endpoint_name = env_vars["SRAG_ENDPOINT_NAME"]
+endpoint_name = env_vars["LLM_ENDPOINT_NAME"]
 model = env_vars["MODEL"]
 
 # COMMAND ----------
 
 client = deployments.get_deploy_client("databricks")
-
-# COMMAND ----------
-
-client.list_endpoints()
 
 # COMMAND ----------
 
@@ -135,6 +136,14 @@ print("Endpoint ready to use.")
 
 # MAGIC %md
 # MAGIC ## Test Endpoint
+
+# COMMAND ----------
+
+openai_client.chat.completions.create(
+    model=endpoint_name,
+    messages=[{"role": "user", "content": "What day is it today?"}],
+    max_tokens=20,
+)
 
 # COMMAND ----------
 
