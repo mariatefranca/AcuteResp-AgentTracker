@@ -195,3 +195,11 @@ Ao final da execução, o projeto gera:
 - Texto explicativo gerado por IA, contextualizado com notícias recentes
 
 Os relatórios podem ser acessados diretamente no **Databricks Workspace** ou exportados para compartilhamento.
+
+# Diagrama
+
+Abaixo você pode visualizar um digrama dos jobs e da lógica aplicada no funcionamento do agente.
+
+<p align="center">
+  <img src="conf/srag_agent_flow.jpg" alt="Agent Diagram" width="1000"/>
+</p>
