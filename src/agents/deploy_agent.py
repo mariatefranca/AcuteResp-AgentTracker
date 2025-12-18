@@ -35,14 +35,9 @@ from langchain_core.messages import (
 from pydantic import BaseModel, create_model
 from typing import Annotated, TypedDict
 from mlflow.models.resources import DatabricksFunction, DatabricksServingEndpoint
+from mlflow import MlflowClient
 
 mlflow.set_registry_uri("databricks-uc")
-
-# COMMAND ----------
-
-sys.path.append("../../src")
-
-from agents.agent import AGENT
 
 # COMMAND ----------
 
@@ -73,14 +68,8 @@ UC_MODEL_NAME = f"{env_vars['CATALOG']}.{env_vars['FS_SCHEMA']}.srag_model"
 
 # COMMAND ----------
 
-!pip list
-
-# COMMAND ----------
-
-dependencies = toml.load("../../pyproject.toml")["project"]["dependencies"]
-dependencies
-
-# COMMAND ----------
+# Configure UC model location
+UC_MODEL_NAME = f"{env_vars['CATALOG']}.{env_vars['FS_SCHEMA']}.srag_model"
 
 resources = [
     DatabricksServingEndpoint(
@@ -102,64 +91,33 @@ with mlflow.start_run():
        artifacts={
             "env_vars": "../../conf/env_vars.toml"
         },
-        # registered_model_name=f'{env_vars["CATALOG"]}.{env_vars["FS_SCHEMA"]}.srag_model' # MLflow Registry name
+        registered_model_name=UC_MODEL_NAME # MLflow Registry name
     )
 
 # COMMAND ----------
 
-model_info.name
 
-# COMMAND ----------
+# Instantiate mlflow client.
+client = MlflowClient()
 
-# import mlflow.deployments
-from databricks import agents
-
-# client = mlflow.deployments.get_deploy_client("databricks")
-
-
-# COMMAND ----------
-
-agents.list_deployments()
-
-# COMMAND ----------
-
-agents.delete_deployment(model_name='DEV.SRAG_FEATURE_STORE.srag_model')
-
-# COMMAND ----------
-
-# Configure UC model location
-UC_MODEL_NAME = f"{env_vars['CATALOG']}.{env_vars['FS_SCHEMA']}.srag_model"
-
-# Register to Unity Catalog
-registered_model = mlflow.register_model(
-  model_uri=model_info.model_uri, name=UC_MODEL_NAME
+# Set an alias to the last model version created to load the model and ask questions to the model (see the notebook ai_chat).
+model_versions = client.search_model_versions(f"name='{UC_MODEL_NAME}'")
+client.set_registered_model_alias(
+    name=UC_MODEL_NAME,
+    alias="champion",
+    version=model_versions[0].version
 )
 
 # COMMAND ----------
 
-from langchain.memory import ConversationBufferMemory
+# This code could be used to deploy the AI model in a serving endpopint, however some dependecy issues should be solved to do this succesfully.
+# from databricks import agents
 
+# # Delete the previous deployment
+# agents.list_deployments()
+# agents.delete_deployment(model_name=UC_MODEL_NAME)
 
-# COMMAND ----------
-
-# Deploy to enable the review app and create an API endpoint
-deployment_info = agents.deploy(
-  model_name=UC_MODEL_NAME, model_version=registered_model.version, scale_to_zero=True, deploy_feedback_model=False
-)
-
-# COMMAND ----------
-
-# from mlflow import MlflowClient
-
-# client = MlflowClient()
-
-# models = [
-#     m.name for m in client.search_registered_models()
-# ]
-
-# COMMAND ----------
-
-# model = mlflow.pyfunc.load_model(model_info.model_uri)
-# AGENT.predict({
-#     "messages": [{"role": "user", "content": "O que é SRAG?"}]
-# })
+# # Deploy to enable the review app and create an API endpoint
+# deployment_info = agents.deploy(
+#   model_name=UC_MODEL_NAME, model_version=model_versions[0].version, scale_to_zero=True, deploy_feedback_model=False
+# )

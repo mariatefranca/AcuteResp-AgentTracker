@@ -1,6 +1,55 @@
 # The main job for acute_resp_agent_job.
 resources:
   jobs:
+
+    project_setup_job:
+      name: project_setup_job
+
+      trigger:
+        # Run this job every day, exactly one day from the last run; see https://docs.databricks.com/api/workspace/jobs/create#trigger
+        paused_status: PAUSED
+
+      email_notifications:
+       on_failure:
+         - ${workspace.current_user.userName}
+
+      tasks:
+        - task_key: ingest_static_data
+          notebook_task:
+            notebook_path: ../src/elt/extract_static_data.py
+        
+        - task_key: ingest_refreshing_data
+          depends_on:
+            - task_key: ingest_static_data
+          notebook_task:
+            notebook_path: ../src/elt/extract_refreshing_data.py
+
+        - task_key: feature_engineering
+          depends_on:
+            - task_key: ingest_refreshing_data
+          notebook_task:
+            notebook_path: ../src/elt/feature_engineering.py
+        
+        # - task_key: create_serving_endpoint
+        #   depends_on:
+        #     - task_key: feature_engineering
+        #   notebook_task:
+        #     notebook_path: ../src/agents/agent_environment.py
+      
+        - task_key: deploy_agent
+          depends_on:
+            - task_key: feature_engineering
+          notebook_task:
+            notebook_path: ../src/agents/deploy_agent.py
+
+        - task_key: create_srag_report
+          depends_on:
+            - task_key: deploy_agent
+          notebook_task:
+            notebook_path: ../src/agents/daily_report_generator.py
+
+        
+
     acute_resp_agent_job:
       name: acute_resp_agent_job
 
@@ -10,69 +59,33 @@ resources:
           interval: 1
           unit: DAYS
 
-        #email_notifications:
-        #on_failure:
-        # - ${workspace.current_user.userName}
-
-      # tasks:
-      #   - task_key: ingest_refreshing_data
-      #     notebook_task:
-      #       notebook_path: ../src/elt/extract_refreshing_data.py
-
-        # - task_key: feature_engineering
-        #   depends_on:
-        #     - task_key: ingest_refreshing_data
-        #   notebook_task:
-        #     notebook_path: ../src/elt/feature_engineering.py
-        
-
-    project_setup_job:
-      name: acute_resp_agent_job
-
-      # trigger:
-        # Run this job every day, exactly one day from the last run; see https://docs.databricks.com/api/workspace/jobs/create#trigger
-        # periodic:
-        #   interval: 7
-        #   unit: DAYS
-
-      #email_notifications:
-      #  on_failure:
-      #    - your_email@example.com
+      email_notifications:
+        on_failure:
+        - ${workspace.current_user.userName}
 
       tasks:
-        - task_key: ingest_static_data
+        - task_key: ingest_refreshing_data
           notebook_task:
-            notebook_path: ../src/elt/extract_static_data.py
-        
-        # - task_key: ingest_refreshing_data
-        #   depends_on:
-        #     - task_key: ingest_static_data
-        #   notebook_task:
-        #     notebook_path: ../src/elt/extract_refreshing_data.py
+            notebook_path: ../src/elt/extract_refreshing_data.py
 
-        # - task_key: feature_engineering
-        #   depends_on:
-        #     - task_key: ingest_refreshing_data
-        #   notebook_task:
-        #     notebook_path: ../src/elt/feature_engineering.py
+        - task_key: feature_engineering
+          depends_on:
+            - task_key: ingest_refreshing_data
+          notebook_task:
+            notebook_path: ../src/elt/feature_engineering.py
         
-        # - task_key: create_serving_endpoint
-        #   depends_on:
-        #     - task_key: feature_engineering
-        #   notebook_task:
-        #     notebook_path: ../src/agents/agent_environment.py
-      
-        # - task_key: deploy_agent
-        #   depends_on:
-        #     - task_key: create_serving_endpoint
-        #   notebook_task:
-        #     notebook_path: ../src/agents/deploy_agent.py
+        - task_key: create_srag_report
+          depends_on:
+            - task_key: feature_engineering
+          notebook_task:
+            notebook_path: ../src/agents/daily_report_generator.py
 
-        # - task_key: create_srag_report
-        #   depends_on:
-        #     - task_key: deploy_agent
-        #   notebook_task:
-        #     notebook_path: ../src/agents/daily_report_runner.py
+
+
+
+        
+
+
         
 
 

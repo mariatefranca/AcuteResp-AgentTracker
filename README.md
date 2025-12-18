@@ -1,61 +1,181 @@
-# AcuteResp-AgentTracker
+# AcuteResp-AgentTracker: Projeto de IA Generativa para Análise de SRAG (DataSUS)
 
-## Getting Started
+Este projeto implementa uma **solução de IA generativa com agentes** para ingestão, transformação e análise de dados de **SRAG (Síndrome Respiratória Aguda Grave)** disponibilizados pelo **DataSUS**.
 
-To deploy and manage this asset bundle, follow these steps:
+A solução gera **relatórios HTML automatizados**, contendo:
+- Principais **métricas epidemiológicas** sobre a doença
+- **Visualizações interativas** (gráficos e tabelas)
+- **Explicações em linguagem natural**, contextualizando os indicadores calculados com base em **notícias diárias da web**, permitindo uma leitura analítica e atualizada do cenário epidemiológico
 
-### 1. Deployment
+O projeto foi desenvolvido para rodar no **Databricks Free Edition**, utilizando **Databricks Asset Bundles (DAB)** para padronizar o deploy e a execução.
 
-- Click the **deployment rocket** 🚀 in the left sidebar to open the **Deployments** panel, then click **Deploy**.
+## Arquitetura do Projeto
 
-### 2. Running Jobs & Pipelines
+O fluxo principal é composto por um **agente de IA generativa** que executa as seguintes etapas:
 
-- To run a deployed job or pipeline, hover over the resource in the **Deployments** panel and click the **Run** button.
+1. **Ingestão de dados**  
+   - Download e leitura dos dados públicos de SRAG do DataSUS
 
-### 3. Managing Resources
+2. **Transformação e enriquecimento**  
+   - Limpeza e padronização dos dados
+   - Criação de métricas epidemiológicas (casos, óbitos, taxas, evolução temporal, etc.)
 
-- Use the **Create** dropdown to add resources to the asset bundle.
-- Click **Schedule** on a notebook within the asset bundle to create a **job definition** that schedules the notebook.
+3. **Geração de visualizações**  
+   - Gráficos temporais, distribuições geográficas e indicadores-chave
 
-## Documentation
+4. **Contextualização com IA generativa**  
+   - Coleta de notícias recentes da web
+   - Geração de explicações textuais que relacionam os dados com o contexto atual
 
-- For information on using **Databricks Asset Bundles in the workspace**, see: [Databricks Asset Bundles in the workspace](https://docs.databricks.com/aws/en/dev-tools/bundles/workspace-bundles)
-- For details on the **Databricks Asset Bundles format** used in this asset bundle, see: [Databricks Asset Bundles Configuration reference](https://docs.databricks.com/aws/en/dev-tools/bundles/reference)
+5. **Geração de relatórios HTML**  
+   - Relatórios prontos para compartilhamento
 
-# Estrutura do Projeto
+## 📁 Estrutura do Repositório
 
-.
-├── conf/                 # Arquivos de configuração.
-├── reports/              # Relatórios diários de SRAG.
-│   └── report.html       # Relatório final em HTML gerado para o dia.
-├── scratch/              # Notebooks de exploração.
-├── resources/            # Notebooks para exploração.
-├── src/                 # Código-fonte principal da aplicação.
-│   ├── agents/           # Agentes responsáveis pela execução do relatório.
-│       └── agent.py                 # Código de estruturação do agente.
-│       └── agent_environment.py     # Código para criação do serving endpoint.
-│       └── deploy_agent.py          # Código para execução do deploy do agente.
-│   ├── agent_config/           # Arquivos de configuração do agente.
-│       └── callback_handler.py      # Código para captura de logs de eventos nas chamadas do agente.
-│       └── prompt.py                # System prompt.
-│   ├── elt/            # Extract, load and transform data.
-│       └── extract_static_data.py     # Extração de dados antigos/estáticos.
-│       └── extract_refreshing_data.py     # Extração de dados que são atualidos com frequência.
-│       └── feature_engineering.py     # Tranformação de dados para  engenharia de features.
-│   ├── tools/            # Ferramentas (tools) executadas pelos agentes.
-│       └── metric_calculator.py     # Ferramenta que calcula as métricas de SRAG.
-│       └── visual_generator.py     # Ferramenta que plota as visualizações do relatório.
-│       └── web_news_searcher.py     # Ferramenta que recebe uma query do agente e faz uma busca de notícias na web.
-│       └── database_searcher.py     # Agente/Ferramenta que faz spark queries nas tabelas para responder perguntas do usuário sobre os dados.
-│       └── report_finder.py         # Ferramenta que busca se existe um relatório já gerado no dia atual.
-│       └── report_assembler.py     # Ferramenta que recebe dicionários contendo notícias, métricas e visualizações e compila o relatório.
-│   ├── utils/                          # Arquivos utilitários.
-│       └── srag_report_template.html   # Template do relatório.
-│       └── general_helpers.py          # Funções utilitárias.
+```
+.   
+├── conf/                               # Arquivos de configuração.   
+├── reports/                            # Relatórios diários de SRAG.   
+│   └── report.html                     # Relatório final em HTML gerado para o dia.  
+├── scratch/                            # Notebooks de exploração.   
+├── resources/                          # Notebooks para exploração.   
+├── src/                                # Código-fonte principal da aplicação.   
+│   ├── agents/                         # Agentes responsáveis pela execução do relatório.
+│       └── agent.py                    # Código de estruturação do agente.  
+│       └── agent_environment.py        # Código para criação do serving endpoint.   
+│       └── deploy_agent.py             # Código para execução do deploy do agente.   
+│   ├── agent_config/                   # Arquivos de configuração do agente.   
+│       └── callback_handler.py         # Código para captura de logs de eventos nas chamadas do agente.   
+│       └── prompt.py                   # System prompt.   
+│   ├── elt/                            # Extract, load and transform data.   
+│       └── extract_static_data.py      # Extração de dados antigos/estáticos.   
+│       └── extract_refreshing_data.py  # Extração de dados que são atualidos com frequência.   
+│       └── feature_engineering.py      # Tranformação de dados para  engenharia de features.   
+│   ├── tools/                          # Ferramentas (tools) executadas pelos agentes.   
+│       └── metric_calculator.py        # Ferramenta que calcula as métricas de SRAG.   
+│       └── visual_generator.py         # Ferramenta que plota as visualizações do relatório.   
+│       └── web_news_searcher.py        # Ferramenta que recebe uma query do agente e faz uma busca de notícias na web.   
+│       └── database_searcher.py        # Agente/Ferramenta que faz spark queries nas tabelas para responder perguntas 
+│                                         do usuário sobre os dados.   
+│       └── report_finder.py            # Ferramenta que busca se existe um relatório já gerado no dia atual.
+│       └── report_assembler.py         # Ferramenta que recebe dicionários contendo notícias, métricas e visualizações e 
+│                                         compila o relatório.   
+│   ├── utils/                          # Arquivos utilitários.   
+│       └── srag_report_template.html   # Template do relatório.   
+│       └── general_helpers.py          # Funções utilitárias.  
+├── .env.example                        # Arquivo de exemplo para variáveis de ambiente.   
+├── pyproject.toml                      # Arquivo de configuração de dependências Python.   
+└── README.md                           # Documentação do projeto.   
+```
+## Pré-requisitos
 
-│   └── graph.py          # Graph Workflow do langgraph
-│   └── main.py           # Ponto de entrada para execução do pipeline.
-│   └── old_main.py       # Ponto de entrada para execução do pipeline (sem langgraph).
-├── .env.example        # Arquivo de exemplo para variáveis de ambiente.
-├── requirements.txt    # Lista de dependências Python.
-└── README.md           # Documentação do projeto.
+- Conta **Databricks Free Edition**
+- Conta no **GitHub**
+- Git instalado localmente (opcional, mas recomendado)
+- Databricks CLI
+
+## Como criar uma conta no Databricks Free Edition
+
+1. Acesse: https://www.databricks.com/try-databricks
+2. Selecione **Free Edition**
+3. Crie sua conta utilizando e-mail ou login do GitHub
+4. Após a criação, você será redirecionado para o **Databricks Workspace**
+
+A Free Edition é suficiente para executar este projeto e testar agentes de IA.
+
+## Como configurar a conexão do GitHub com o Databricks
+
+1. No Databricks Workspace, clique no seu avatar (canto superior direito)
+2. Vá em **Settings → Linked accounts**
+3. Em **Git Integration**, selecione **GitHub**
+4. Autorize o acesso do Databricks à sua conta GitHub
+
+Alternativamente, você pode usar um **GitHub Personal Access Token (PAT)**:
+- Crie o token no GitHub
+- Cole o token na configuração de Git Integration do Databricks
+
+
+## Como clonar o repositório no Databricks
+
+### Opção 1 – Usando a interface do Databricks
+
+1. No Workspace, clique em **Repos**
+2. Clique em **Add Repo**
+3. Selecione **Clone remote Git repo**
+4. Informe a URL do repositório GitHub
+5. Clique em **Create Repo**
+
+### Opção 2 – Localmente via Databricks CLI
+
+```bash
+databricks repos create https://github.com/seu-usuario/seu-repositorio
+```
+
+## Configuração do Databricks Asset Bundles (DAB)
+
+Este projeto utiliza **Databricks Asset Bundles** para empacotar e executar o código de forma reprodutível.
+
+### 1. Instalar o Databricks CLI
+
+```bash
+pip install databricks-cli
+```
+
+### 2. Autenticar no Databricks
+
+```bash
+databricks auth login
+```
+
+Siga as instruções para autenticar via navegador.
+
+
+##  Como rodar o projeto com Databricks Asset Bundles
+
+### Opção 1 – Usando a interface do Databricks
+
+Para implantar e gerenciar este asset bundle, siga os passos abaixo:
+
+1. Implantação
+
+- Clique no **ícone de foguete de implantação** 🚀 na barra lateral esquerda para abrir o painel **Deployments** e, em seguida, clique em **Deploy**.
+
+2. Execução de Jobs e Pipelines
+
+- Para executar um job ou pipeline implantado, passe o mouse sobre o recurso no painel **Deployments** e clique no botão **Run**.
+
+### Opção 2 – Localmente via Databricks CLI
+A partir da raiz do repositório:
+
+1. Validar o bundle
+
+```bash
+databricks bundle validate
+```
+
+2. Fazer o deploy do bundle
+
+```bash
+databricks bundle deploy
+```
+
+3. Executar o pipeline
+
+```bash
+databricks bundle run
+```
+
+> O comando `run` executa os jobs definidos no arquivo `databricks.yml`, incluindo a execução do agente de IA e a geração dos relatórios.
+
+## Resultados
+
+Ao final da execução, o projeto gera:
+- Relatórios **HTML** com métricas de SRAG
+- Gráficos e indicadores epidemiológicos
+- Texto explicativo gerado por IA, contextualizado com notícias recentes
+
+Os relatórios podem ser acessados diretamente no **Databricks Workspace** ou exportados para compartilhamento.
+
+
+
+

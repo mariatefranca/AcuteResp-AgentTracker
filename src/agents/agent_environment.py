@@ -139,14 +139,6 @@ print("Endpoint ready to use.")
 
 # COMMAND ----------
 
-openai_client.chat.completions.create(
-    model=endpoint_name,
-    messages=[{"role": "user", "content": "What day is it today?"}],
-    max_tokens=20,
-)
-
-# COMMAND ----------
-
 openai_client = w.serving_endpoints.get_open_ai_client()
 
 resp = openai_client.chat.completions.create(
