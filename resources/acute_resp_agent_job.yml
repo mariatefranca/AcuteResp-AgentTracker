@@ -5,10 +5,6 @@ resources:
     project_setup_job:
       name: project_setup_job
 
-      trigger:
-        # Run this job every day, exactly one day from the last run; see https://docs.databricks.com/api/workspace/jobs/create#trigger
-        paused_status: PAUSED
-
       email_notifications:
        on_failure:
          - ${workspace.current_user.userName}
@@ -53,11 +49,9 @@ resources:
     acute_resp_agent_job:
       name: acute_resp_agent_job
 
-      trigger:
-        # Run this job every day, exactly one day from the last run; see https://docs.databricks.com/api/workspace/jobs/create#trigger
-        periodic:
-          interval: 1
-          unit: DAYS
+      schedule:
+        quartz_cron_expression: '0 0 8 * * ?' # daily at 8am
+        timezone_id: UTC
 
       email_notifications:
         on_failure:

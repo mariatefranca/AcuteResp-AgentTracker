@@ -1,6 +1,7 @@
-# AcuteResp-AgentTracker: Projeto de IA Generativa para Análise de SRAG (DataSUS)
+# AcuteResp-AgentTracker: Agente Analista de Síndrome Respiratória Aguda Grave (DataSUS)
 
 Este projeto implementa uma **solução de IA generativa com agentes** para ingestão, transformação e análise de dados de **SRAG (Síndrome Respiratória Aguda Grave)** disponibilizados pelo **DataSUS**.
+O agente gera automaticamente o relatório diário de SRAG e também pode ser usado pelo usuário para obter informações sobre a doença ou os dados existentes. Para interagir com o agente utilize o notebook chat_ai.
 
 A solução gera **relatórios HTML automatizados**, contendo:
 - Principais **métricas epidemiológicas** sobre a doença
@@ -9,14 +10,12 @@ A solução gera **relatórios HTML automatizados**, contendo:
 
 O projeto foi desenvolvido para rodar no **Databricks Free Edition**, utilizando **Databricks Asset Bundles (DAB)** para padronizar o deploy e a execução.
 
-## Arquitetura do Projeto
-
 O fluxo principal é composto por um **agente de IA generativa** que executa as seguintes etapas:
 
 1. **Ingestão de dados**  
    - Download e leitura dos dados públicos de SRAG do DataSUS
 
-2. **Transformação e enriquecimento**  
+2. **Transformação**  
    - Limpeza e padronização dos dados
    - Criação de métricas epidemiológicas (casos, óbitos, taxas, evolução temporal, etc.)
 
@@ -44,6 +43,8 @@ O fluxo principal é composto por um **agente de IA generativa** que executa as 
 │       └── agent.py                    # Código de estruturação do agente.  
 │       └── agent_environment.py        # Código para criação do serving endpoint.   
 │       └── deploy_agent.py             # Código para execução do deploy do agente.   
+│       └── daily_report_generator.py   # Notebook que executa o modelo para gerar o relatório diário de SRAG
+│       └── chat_ai.py                  # Notebook que carrega o modelo e permite o envio de perguntas personalizadas aoa gente. 
 │   ├── agent_config/                   # Arquivos de configuração do agente.   
 │       └── callback_handler.py         # Código para captura de logs de eventos nas chamadas do agente.   
 │       └── prompt.py                   # System prompt.   
@@ -67,12 +68,17 @@ O fluxo principal é composto por um **agente de IA generativa** que executa as 
 ├── pyproject.toml                      # Arquivo de configuração de dependências Python.   
 └── README.md                           # Documentação do projeto.   
 ```
+
+
 ## Pré-requisitos
 
 - Conta **Databricks Free Edition**
 - Conta no **GitHub**
-- Git instalado localmente (opcional, mas recomendado)
-- Databricks CLI
+- OpenAI API chave paga  GPT-5 (https://openai.com/index/openai-api/)
+- Free API key Tavily search (https://www.tavily.com/)
+- Git instalado localmente (opcional, mas recomendado quando usado localmente)
+- Databricks CLI (uso local)
+
 
 ## Como criar uma conta no Databricks Free Edition
 
@@ -82,6 +88,7 @@ O fluxo principal é composto por um **agente de IA generativa** que executa as 
 4. Após a criação, você será redirecionado para o **Databricks Workspace**
 
 A Free Edition é suficiente para executar este projeto e testar agentes de IA.
+
 
 ## Como configurar a conexão do GitHub com o Databricks
 
@@ -97,6 +104,7 @@ Alternativamente, você pode usar um **GitHub Personal Access Token (PAT)**:
 
 ## Como clonar o repositório no Databricks
 
+
 ### Opção 1 – Usando a interface do Databricks
 
 1. No Workspace, clique em **Repos**
@@ -111,26 +119,17 @@ Alternativamente, você pode usar um **GitHub Personal Access Token (PAT)**:
 databricks repos create https://github.com/seu-usuario/seu-repositorio
 ```
 
-## Configuração do Databricks Asset Bundles (DAB)
-
-Este projeto utiliza **Databricks Asset Bundles** para empacotar e executar o código de forma reprodutível.
-
-### 1. Instalar o Databricks CLI
-
-```bash
-pip install databricks-cli
-```
-
-### 2. Autenticar no Databricks
-
-```bash
-databricks auth login
-```
-
-Siga as instruções para autenticar via navegador.
-
 
 ##  Como rodar o projeto com Databricks Asset Bundles
+
+### Adicione API keys
+
+Adicione as chaves da Open AI e Tavily Search no arquivo .env.example e renomeio para .env.
+
+## Jobs a serem executados
+
+- project_setup_job - Job que faz a extração, processamento dos dados, registra o modelo de IA generativa e chama o modelo para gerar o realtório de SRAG (roda manualmente sob demanda).
+- acute_resp_agent_job - Job que tenta extrair dados novos, aplica a transfomraçào nos dados, e chama o modelo para gerar o relatório de SRAG. Job executado diarimente de forma automática após o deploy.
 
 ### Opção 1 – Usando a interface do Databricks
 
@@ -142,24 +141,40 @@ Para implantar e gerenciar este asset bundle, siga os passos abaixo:
 
 2. Execução de Jobs e Pipelines
 
-- Para executar um job ou pipeline implantado, passe o mouse sobre o recurso no painel **Deployments** e clique no botão **Run**.
+- Execute o job implantado project_setup_job, clicando no botão **Run** (play) no canto direito do job.
+- O job acute_resp_agent_job será executado diariamente para tentar extrair dados atualizados e gerar o relatório diário de SRAG.
+
 
 ### Opção 2 – Localmente via Databricks CLI
+
+1. Instalar o Databricks CLI
+
+```bash
+pip install databricks-cli
+```
+
+2. Autenticar no Databricks
+
+```bash
+databricks auth login
+```
+Siga as instruções para autenticar via navegador.
+
 A partir da raiz do repositório:
 
-1. Validar o bundle
+4. Validar o bundle
 
 ```bash
 databricks bundle validate
 ```
 
-2. Fazer o deploy do bundle
+5. Fazer o deploy do bundle
 
 ```bash
 databricks bundle deploy
 ```
 
-3. Executar o pipeline
+6. Executar o pipeline
 
 ```bash
 databricks bundle run
@@ -175,7 +190,3 @@ Ao final da execução, o projeto gera:
 - Texto explicativo gerado por IA, contextualizado com notícias recentes
 
 Os relatórios podem ser acessados diretamente no **Databricks Workspace** ou exportados para compartilhamento.
-
-
-
-
