@@ -10,6 +10,8 @@ A solução gera **relatórios HTML automatizados**, contendo:
 
 O projeto foi desenvolvido para rodar no **Databricks Free Edition**, utilizando **Databricks Asset Bundles (DAB)** para padronizar o deploy e a execução.
 
+## Fluxo de Criação do Relatório de SRAG
+
 O fluxo principal é composto por um **agente de IA generativa** que executa as seguintes etapas:
 
 1. **Ingestão de dados**  
@@ -17,6 +19,9 @@ O fluxo principal é composto por um **agente de IA generativa** que executa as 
 
 2. **Transformação**  
    - Limpeza e padronização dos dados
+   - Criação de uma tabela com dados limitados para consumo pelo agente, excluindo colunas desnecessárias e dados sensíveis.
+
+3. **Geração de métricas**  
    - Criação de métricas epidemiológicas (casos, óbitos, taxas, evolução temporal, etc.)
 
 3. **Geração de visualizações**  
