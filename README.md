@@ -115,13 +115,13 @@ Alternativamente, você pode usar um **GitHub Personal Access Token (PAT)**:
 1. No Workspace, clique em **Repos**
 2. Clique em **Add Repo**
 3. Selecione **Clone remote Git repo**
-4. Informe a URL do repositório GitHub
+4. Informe a URL do repositório GitHub: https://github.com/mariatefranca/AcuteResp-AgentTracker.git
 5. Clique em **Create Repo**
 
 ### Opção 2 – Localmente via Databricks CLI
 
 ```bash
-databricks repos create https://github.com/seu-usuario/seu-repositorio
+databricks repos create https://github.com/seu-usuario/seu-repositorio](https://github.com/mariatefranca/AcuteResp-AgentTracker.git
 ```
 
 
