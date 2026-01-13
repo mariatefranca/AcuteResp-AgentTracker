@@ -26,15 +26,15 @@ resources:
           notebook_task:
             notebook_path: ../src/elt/feature_engineering.py
         
-        # - task_key: create_serving_endpoint
-        #   depends_on:
-        #     - task_key: feature_engineering
-        #   notebook_task:
-        #     notebook_path: ../src/agents/agent_environment.py
+        - task_key: create_serving_endpoint
+          depends_on:
+            - task_key: feature_engineering
+          notebook_task:
+            notebook_path: ../src/agents/agent_environment.py
       
         - task_key: deploy_agent
           depends_on:
-            - task_key: feature_engineering
+            - task_key: create_serving_endpoint
           notebook_task:
             notebook_path: ../src/agents/deploy_agent.py
 
@@ -52,6 +52,7 @@ resources:
       schedule:
         quartz_cron_expression: '0 0 8 * * ?' # daily at 8am
         timezone_id: UTC
+        pause_status: UNPAUSED
 
       email_notifications:
         on_failure:

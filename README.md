@@ -121,7 +121,7 @@ Alternativamente, você pode usar um **GitHub Personal Access Token (PAT)**:
 ### Opção 2 – Localmente via Databricks CLI
 
 ```bash
-databricks repos create https://github.com/seu-usuario/seu-repositorio](https://github.com/mariatefranca/AcuteResp-AgentTracker.git
+databricks repos create https://github.com/mariatefranca/AcuteResp-AgentTracker.git
 ```
 
 
@@ -194,7 +194,7 @@ Ao final da execução, o projeto gera:
 - Gráficos e indicadores epidemiológicos
 - Texto explicativo gerado por IA, contextualizado com notícias recentes
 
-Os relatórios podem ser acessados diretamente no **Databricks Workspace** ou exportados para compartilhamento.
+Os relatórios podem ser acessados diretamente no **Databricks Workspace** em [reports](reports/) ou exportados em formato pdf para compartilhamento, como o exemplo [Relatório SRAG — Indicium HealthCare Inc_.pdf](reports/Relatório SRAG — Indicium HealthCare Inc_.pdf).
 
 # Diagrama
 

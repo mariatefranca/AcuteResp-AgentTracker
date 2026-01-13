@@ -341,16 +341,16 @@ class SRAGMetrics:
         total_df = df.groupBy(group) \
                     .agg({"NU_NOTIFIC" : "count",
                         "vacinacao_covid" : "sum",
-                        "vacinacao_gripe": "sum"})
+                        "vacinacao_influenza": "sum"})
         total_df = (total_df.withColumnRenamed("count(NU_NOTIFIC)", "total_notifications")
                             .withColumnRenamed("sum(vacinacao_covid)", "vaccinated_covid")
-                            .withColumnRenamed("sum(vacinacao_gripe)", "vaccinated_gripe"))
+                            .withColumnRenamed("sum(vacinacao_influenza)", "vaccinated_influenza"))
         total_df = total_df.withColumns({
             "rate_vaccinated_covid": F.round((F.col("vaccinated_covid") / F.col("total_notifications") * 100), 2),
-            "rate_vaccinated_gripe": F.round((F.col("vaccinated_gripe") / F.col("total_notifications") * 100), 2)
+            "rate_vaccinated_influenza": F.round((F.col("vaccinated_influenza") / F.col("total_notifications") * 100), 2)
             })
         
-        total_df = total_df.toPandas().rename(columns={"year_month": "Mês/Ano", "SG_UF_NOT": "UF", "total_notifications": "Total de Notificações", "vaccinated_covid": "Número de Pacientes Vacinados COVID", "vaccinated_gripe": "Número de Pacientes Vacinados Gripe", "rate_vaccinated_covid": "Taxa de vacinados COVID (%)", "rate_vaccinated_gripe": "Taxa de vacinados Gripe (%)"})   
+        total_df = total_df.toPandas().rename(columns={"year_month": "Mês/Ano", "SG_UF_NOT": "UF", "total_notifications": "Total de Notificações", "vaccinated_covid": "Número de Pacientes Vacinados COVID", "vaccinated_influenza": "Número de Pacientes Vacinados Gripe", "rate_vaccinated_covid": "Taxa de vacinados COVID (%)", "rate_vaccinated_influenza": "Taxa de vacinados Gripe (%)"})   
         return total_df
     
     # Agent-facing run method
@@ -377,6 +377,7 @@ class SRAGMetrics:
             "last_month_year": self.calculate_icu_admission_rate()["year_month"].iloc[0],
             "icu_admission_count": self.calculate_icu_admission_rate()["admitted_icu"].iloc[0],
             "icu_admission_rate": self.calculate_icu_admission_rate()["icu_admission_rate"].iloc[0],
+            "vaccination_table": self.calculate_vaccination_rate().to_html(classes="vaccination-table", index=False)
         }
         return metric_results
     
@@ -392,3 +393,4 @@ class SRAGMetricsOutput(BaseModel):
     last_month_year: str = Field(..., description="Year-month of last month in format YYYY-MM")
     icu_admission_count: int = Field(..., description="ICU admission count for last month")
     icu_admission_rate: float = Field(..., description="ICU admission rate for last month")
+    vaccination_table: str = Field(..., description="Vaccination table in HTML format")

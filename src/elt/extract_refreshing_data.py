@@ -6,11 +6,14 @@ dbutils.library.restartPython()
 # COMMAND ----------
 
 import pprint
-import requests
 import json
 import pandas as pd
 import toml
-import requests, zipfile, io
+import requests
+import zipfile
+import io
+from datetime import datetime, timedelta
+import sys
 
 # COMMAND ----------
 
@@ -19,111 +22,142 @@ env_vars = toml.load("../../conf/env_vars.toml")
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## Request test
-
-# COMMAND ----------
-
-# Data SUS API link
-data_sus_api_link = "https://opendatasus.saude.gov.br/api/3/action"
-
-# Make the HTTP request
-response = requests.get(f"{data_sus_api_link}/package_list")
-
-# Use the json module to load CKAN's response into a dictionary
-response_dict = json.loads(response.content)
-
-# Check the contents of the response
-assert response_dict['success'] is True  # make sure if response is OK
-
-datasets = response_dict['result']         # extract all the packages from the response
-print("Total datasets: ", len(datasets))                       # print the total number of datasets
-datasets
-
-# COMMAND ----------
-
-def get_most_recent_data_url(package_id:str):
-
-    # Base url for package information. 
-    data_sus_api_link = 'https://opendatasus.saude.gov.br/api/3/action'
-
-    # Construct the url for the package id.
-    package_information_url = f"{data_sus_api_link}/package_show?id={package_id}"
-
-    # Make the HTTP request
-    package_information = requests.get(package_information_url)
-
-    # Use the json module to load CKAN's response into a dictionary
-    package_dict = json.loads(package_information.content)
-
-    # Check the contents of the response.
-    assert package_dict['success'] is True  # Make sure if response is OK
-
-    for i in range(len(package_dict["result"]["resources"])):
-        if (
-            package_dict["result"]["resources"][i]["format"].lower() == "csv") & (
-            "2025" in package_dict["result"]["resources"][i]["name"]
-            ):
-            url = package_dict["result"]["resources"][i]["url"]
-            last_update = package_dict["result"]["resources"][i]["last_modified"]
-        
-    return url
-
-# COMMAND ----------
-
-# MAGIC %md
 # MAGIC # 2025 SRAG - Banco Vivo
 
 # COMMAND ----------
 
-# SRAG package id.
-srag_package_id = "39a4995f-4a6e-440f-8c8f-b00c81fae0d0"
-latest_srag_update_url = get_most_recent_data_url(srag_package_id)
-latest_srag_update_url
+# Find most recent SRAG files in S3 of OpenDataSUS
+
+def find_latest_srag(years=[2025,2026], days_back=30, file_format=None):
+    """
+    Searches for the most recent SRAG file by testing retroactive dates.
+
+    Args:
+        years: Epidemiological years (e.g. 2025 and 2026)
+        days_back: How many days back to test
+        file_format: SRAG file format (e.g. csv)
+
+    Returns:
+        Dict with URLs found by format
+    """
+    if file_format is None:
+        file_format = 'csv'
+    found = {}
+    for year in years:
+
+        base_url = f"https://s3.sa-east-1.amazonaws.com/ckan.saude.gov.br/SRAG/{year}"
+        year_suffix = str(year)[-2:]  # 2025 -> 25
+
+        print(f"Buscando arquivos SRAG {year} mais recentes...")
+        print(f"Testando últimos {days_back} dias...")
+        print(f"\nAno: {year}")
+        for i in range(days_back):
+            date = datetime.now() - timedelta(days=i)
+            date_str = date.strftime("%d-%m-%Y")
+        
+            filename = f"INFLUD{year_suffix}-{date_str}.{file_format}"
+            url = f"{base_url}/{filename}"
+        
+            try:
+                resp = requests.head(url, timeout=5)
+                if resp.status_code == 200:
+                    print(f"  ✅ Encontrado: {filename}")
+                    found[year] = {
+                        'url': url,
+                        'date': date_str,
+                        'filename': filename
+                    }
+                    break
+                else:
+                    print(".", end="", flush=True)
+            except requests.exceptions.RequestException:
+                print("x", end="", flush=True)
+    
+        if year not in found:
+            print(f"\n  ❌ Nenhum arquivo {year} encontrado")
+    return found
 
 # COMMAND ----------
 
- # Correct the file path to use the s3a protocol when reading the file using spark.
-corrected_srag_url = "s3a:/" + latest_srag_update_url.split("amazonaws.com")[1]
-corrected_srag_url
-
-# COMMAND ----------
-
-srag_table_name = F'{env_vars["CATALOG"]}.{env_vars["SCHEMA"]}.srag_vigilance'
-srag_table_2025 = F'{env_vars["CATALOG"]}.{env_vars["SCHEMA"]}.srag_2025'
-srag_schema = spark.read.table(srag_table_name).schema
-
-df_influenza_2025 = spark.read.options(delimiter=";", header=True).schema(srag_schema).csv(corrected_srag_url, dateFormat="dd/MM/yyyy")
-
-# Save the new data to the SRAG table.
-df_influenza_2025.write.mode("overwrite").saveAsTable(srag_table_2025)
-
-# COMMAND ----------
-
-df_influenza_2025.toPandas().tail(5)
-
-# COMMAND ----------
-
-print("df_influenza_2025: num_rows = ", df_influenza_2025.count(), ", num_cols = ", len(df_influenza_2025.columns))
-
-# COMMAND ----------
-
-srag_table = spark.read.table(srag_table_name)
-row_count_before, col_count_before = srag_table.count(), len(srag_table.columns)
-print(srag_table_name, ": num_rows = ", row_count_before, ", num_cols = ", col_count_before)
-
-# Append 2025 new data to srag table.
-spark.sql(f"""MERGE INTO {srag_table_name}
-USING {srag_table_2025}
-ON {srag_table_name}.NU_NOTIFIC = {srag_table_2025}.NU_NOTIFIC
-WHEN MATCHED THEN
-  UPDATE SET *
-WHEN NOT MATCHED THEN
-  INSERT *
+# Create table to store last SRAG database updates for 2025 and 2026
+SRAG_UPDATE_TABLE = f"{env_vars['CATALOG']}.{env_vars['SCHEMA']}.srag_data_update"
+spark.sql(f"""
+CREATE TABLE IF NOT EXISTS {SRAG_UPDATE_TABLE} (
+    year INT,
+    latest_srag_update DATE
+)
 """)
 
-srag_table_after = spark.read.table(srag_table_name)
-print(srag_table_name, "after merging new data: num_rows = ", srag_table_after.count(), ", num_cols = ", len(srag_table_after.columns))
-print("Number of new rows appended = ", srag_table_after.count() - srag_table.count())
+def update_srag_last_date(year: int, new_date: str):
+    """
+    Updates the SRAG last update date for a given year.
+    If the date is different from the current one, appends a new row.
+    """
+    from pyspark.sql.functions import col
+
+    df = spark.table(SRAG_UPDATE_TABLE).filter(col("year") == year)
+    if df.count() == 0 or df.select("latest_srag_update").first()[0] != new_date:
+        spark.sql(f"""
+            INSERT INTO dev.dev_maria.srag_data_update (year, latest_srag_update)
+            VALUES ({year}, '{new_date}')
+        """)
+
+def get_srag_last_date(year: int):
+    """
+    Returns the last SRAG update date for a given year.
+    """
+    from pyspark.sql.functions import col
+
+    df = spark.table(SRAG_UPDATE_TABLE).filter(col("year") == year)
+    if df.count() == 0:
+        return None
+    return df.orderBy(col("latest_srag_update").desc()).select("latest_srag_update").first()[0]
+
+# COMMAND ----------
+
+# Search for the most recent SRAG file
+results = find_latest_srag(days_back=30
+)
+
+# COMMAND ----------
+
+# Iterate over the results found, if a new update is avaiable, load the new data and update the feature store.
+for year in results.keys():
+    latest_data_upload  = get_srag_last_date(year)
+    new_update = pd.to_datetime(results[year]["date"]).date()
+    if (latest_data_upload is None) or (latest_data_upload < new_update):
+        print(f"A new update in the {year} dataset is available. Loading the dataset updated in {new_update}...")
+        update_srag_last_date(year, new_update)
+
+        latest_srag_update_url = results[year]["url"]
+        corrected_srag_url = "s3a:/" + latest_srag_update_url.split("amazonaws.com")[1]
+        srag_table_name = F'{env_vars["CATALOG"]}.{env_vars["SCHEMA"]}.srag_vigilance'
+        srag_table_new = F'{env_vars["CATALOG"]}.{env_vars["SCHEMA"]}.srag_2025'
+        srag_schema = spark.read.table(srag_table_name).schema
+
+        df_influenza_new = spark.read.options(delimiter=";", header=True).schema(srag_schema).csv(corrected_srag_url, dateFormat="dd/MM/yyyy")
+
+        # Save the new data to the SRAG table.
+        df_influenza_new.write.mode("overwrite").saveAsTable(srag_table_new)
+        print("df_influenza_new: num_rows = ", df_influenza_new.count(), ", num_cols = ", len(df_influenza_new.columns))
+
+        srag_table = spark.read.table(srag_table_name)
+        row_count_before, col_count_before = srag_table.count(), len(srag_table.columns)
+        print(srag_table_name, ": num_rows = ", row_count_before, ", num_cols = ", col_count_before)
+
+        # Append new data to srag table.
+        spark.sql(f"""MERGE INTO {srag_table_name}
+        USING {srag_table_new}
+        ON {srag_table_name}.NU_NOTIFIC = {srag_table_new}.NU_NOTIFIC
+        WHEN MATCHED THEN
+        UPDATE SET *
+        WHEN NOT MATCHED THEN
+        INSERT *
+        """)
+
+        srag_table_after = spark.read.table(srag_table_name)
+        print(srag_table_name, "after merging new data: num_rows = ", srag_table_after.count(), ", num_cols = ", len(srag_table_after.columns))
+        print("Number of new rows appended = ", srag_table_after.count() - srag_table.count())
 
 # COMMAND ----------
 
@@ -134,7 +168,7 @@ print("Number of new rows appended = ", srag_table_after.count() - srag_table.co
 
 # HOSPITAL package id.
 hospital_package_id = "791730b2-50bd-41ba-adf2-d915b88f712a"
-latest_hospital_update_url = get_most_recent_data_url(hospital_package_id)
+latest_hospital_update_url = "https://s3.sa-east-1.amazonaws.com/ckan.saude.gov.br/Leitos_SUS/Leitos_csv_2025.zip"
 latest_hospital_update_url
 
 # COMMAND ----------
